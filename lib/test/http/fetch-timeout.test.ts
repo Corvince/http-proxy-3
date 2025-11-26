@@ -41,7 +41,7 @@ describe("Fetch Proxy Timeout", () => {
         clearTimeout(timeout);
         try {
           expect(err).toBeTruthy();
-          expect(err.message).toBe("Proxy timeout");
+          expect(err.message).toMatchInlineSnapshot(`"The operation was aborted due to timeout"`);
           res.statusCode = 504;
           res.end("Gateway Timeout");
           resolve();
