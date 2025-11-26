@@ -235,27 +235,9 @@ async function stream2(
   const customFetch = options.fetch || fetch;
   const fetchOptions = options.fetchOptions ?? {} as FetchOptions;
 
-  const controller = new AbortController();
-  const { signal } = controller;
-
-  if (options.proxyTimeout) {
-    setTimeout(() => {
-      controller.abort();
-    }, options.proxyTimeout);
-  }
-
-  // Ensure we abort proxy if request is aborted
-  res.on("close", () => {
-    const aborted = !res.writableFinished;
-    if (aborted) {
-      controller.abort();
-    }
-  });
-
   const prepareRequest = (outgoing: common.Outgoing) => {
     const requestOptions: RequestInit = {
       method: outgoing.method,
-      signal,
       ...fetchOptions.requestOptions,
     };
 
@@ -277,6 +259,10 @@ async function stream2(
 
     if (options.auth) {
       headers.set("authorization", `Basic ${Buffer.from(options.auth).toString("base64")}`);
+    }
+
+    if (options.proxyTimeout) {
+      requestOptions.signal = AbortSignal.timeout(options.proxyTimeout);
     }
 
     requestOptions.headers = headers;
@@ -322,16 +308,6 @@ async function stream2(
         }
       }
     } catch (err) {
-      if ((err as Error).name === "AbortError") {
-        // Handle aborts (timeout or client disconnect)
-        if (options.proxyTimeout && signal.aborted) {
-          const proxyTimeoutErr = new Error("Proxy timeout");
-          (proxyTimeoutErr as any).code = "ECONNRESET";
-          handleError(proxyTimeoutErr, options.forward);
-        }
-        // If aborted by client (res.close), we might not want to emit an error or maybe just log it
-        return;
-      }
       handleError(err as Error, options.forward);
     }
 
@@ -427,14 +403,6 @@ async function stream2(
       server?.emit("end", req, res, fakeProxyRes);
     }
   } catch (err) {
-    if ((err as Error).name === "AbortError") {
-      if (options.proxyTimeout && signal.aborted) {
-        const proxyTimeoutErr = new Error("Proxy timeout");
-        (proxyTimeoutErr as any).code = "ECONNRESET";
-        handleError(proxyTimeoutErr, options.target);
-      }
-      return;
-    }
     handleError(err as Error, options.target);
   }
 }
