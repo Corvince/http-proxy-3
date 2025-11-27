@@ -12,7 +12,7 @@ import * as http from "node:http";
 import concat from "concat-stream";
 import * as async from "async";
 import getPort from "../get-port";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 
 describe("#deleteLength", () => {
   it("should change `content-length` for DELETE requests", () => {
@@ -95,7 +95,7 @@ function port(p: number | string) {
 }
 
 describe("#createProxyServer.web() using own http server", () => {
-  it("gets some ports", async () => {
+  beforeAll(async () => {
     for (let n = 8080; n < 8090; n++) {
       ports[`${n}`] = await getPort();
     }
@@ -358,7 +358,7 @@ describe("#createProxyServer.web() using own http server", () => {
           expect(Date.now() - started).toBeGreaterThan(99);
           expect((err as NodeJS.ErrnoException).code).toBeOneOf([
             "ECONNRESET",
-            "UND_ERR_HEADERS_TIMEOUT",
+            23,
           ]);
           done();
         });
@@ -435,7 +435,7 @@ describe("#createProxyServer.web() using own http server", () => {
       req.end();
     }));
 
-  it.skipIf(() => process.env.FORCE_FETCH_PATH === "true")(
+  it(
     "should proxy the request and provide a proxyRes event with the request and response parameters",
     () =>
       new Promise<void>((done) => {
