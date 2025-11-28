@@ -77,7 +77,7 @@ export function setRedirectHostRewrite(
     if (options.hostRewrite) {
       u.host = options.hostRewrite;
     } else if (options.autoRewrite) {
-      u.host = req.headers["host"] ?? "";
+      u.host = (req.headers[":authority"] as string | undefined) ?? req.headers["host"] ?? "";
     }
     if (options.protocolRewrite) {
       u.protocol = options.protocolRewrite;
@@ -143,7 +143,7 @@ export function writeHeaders(
 
   for (const key0 in proxyRes.headers) {
     let key = key0;
-    if (_req.httpVersionMajor > 1 && (key === "connection" || key === "keep-alive")) {  
+    if (_req.httpVersionMajor > 1 && (key === "connection" || key === "keep-alive")) {
       // don't send connection header to http2 client
       continue;
     }
