@@ -28,7 +28,7 @@ describe("HTTPS to HTTP", () => {
     const source = http
       .createServer((req, res) => {
         expect(req.method).toEqual("GET");
-        // expect(req.headers.host?.split(":")[1]).toEqual(`${ports.proxy}`);
+        expect(req.headers.host?.split(":")[1]).toEqual(`${ports.proxy}`);
         res.writeHead(200, { "Content-Type": "text/plain" });
         res.end("Hello from " + ports.source);
       })
