@@ -81,6 +81,9 @@ export function setupOutgoing(
 
   outgoing.method = options.method || req.method;
   outgoing.headers = { ...req.headers };
+  if (req.headers?.[":authority"]) {
+    outgoing.headers.host = req.headers[":authority"];
+  }
 
   if (options.headers) {
     outgoing.headers = { ...outgoing.headers, ...options.headers };
@@ -189,7 +192,8 @@ export function getPort(
   req: Request,
   // Return the port number, as a string.
 ): string {
-  const res = req.headers.host ? req.headers.host.match(/:(\d+)/) : "";
+  const hostHeader = (req.headers[":authority"] as string | undefined) || req.headers.host;
+  const res = hostHeader ? hostHeader.match(/:(\d+)/) : "";
   return res ? res[1] : hasEncryptedConnection(req) ? "443" : "80";
 }
 

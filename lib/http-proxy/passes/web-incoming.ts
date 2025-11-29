@@ -69,7 +69,7 @@ export function XHeaders(req: Request, _res: Response, options: ServerOptions) {
       (req.headers["x-forwarded-" + header] || "") + (req.headers["x-forwarded-" + header] ? "," : "") + values[header];
   }
 
-  req.headers["x-forwarded-host"] = req.headers["x-forwarded-host"] || req.headers["host"] || "";
+  req.headers["x-forwarded-host"] = req.headers["x-forwarded-host"] || req.headers[":authority"] || req.headers["host"] || "";
 }
 
 // Does the actual proxying. If `forward` is enabled fires up
