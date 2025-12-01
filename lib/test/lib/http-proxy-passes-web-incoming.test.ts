@@ -72,6 +72,15 @@ describe("#XHeaders", () => {
       host: "192.168.1.2:8080",
     } as Record<string, string>,
   };
+  const stubHttp2Request = {
+    connection: {
+      remoteAddress: "192.168.1.2",
+      remotePort: "8080",
+    },
+    headers: {
+      ':authority': "192.168.1.2:8080",
+    } as Record<string, string>,
+  };
 
   it("set the correct x-forwarded-* headers", () => {
     // @ts-ignore
@@ -79,6 +88,16 @@ describe("#XHeaders", () => {
     expect(stubRequest.headers["x-forwarded-for"]).toEqual("192.168.1.2");
     expect(stubRequest.headers["x-forwarded-port"]).toEqual("8080");
     expect(stubRequest.headers["x-forwarded-proto"]).toEqual("http");
+    expect(stubRequest.headers["x-forwarded-host"]).toEqual("192.168.1.2:8080");
+  });
+
+  it("set the correct x-forwarded-* headers for http2", () => {
+    // @ts-ignore
+    XHeaders(stubHttp2Request, {}, { xfwd: true });
+    expect(stubHttp2Request.headers["x-forwarded-for"]).toEqual("192.168.1.2");
+    expect(stubHttp2Request.headers["x-forwarded-port"]).toEqual("8080");
+    expect(stubHttp2Request.headers["x-forwarded-proto"]).toEqual("http");
+    expect(stubHttp2Request.headers["x-forwarded-host"]).toEqual("192.168.1.2:8080");
   });
 });
 
@@ -543,7 +562,7 @@ describe("#createProxyServer.web() using own http server", () => {
           source.close();
           proxy.close();
           expect(req.method).toEqual("GET");
-          // expect(req.headers.host?.split(":")[1]).toEqual(`${port(8080)}`);
+          expect(req.headers.host?.split(":")[1]).toEqual(`${port(8080)}`);
           res.end();
           done();
         })
@@ -609,7 +628,7 @@ describe("#createProxyServer.web() using own http server", () => {
 
       const source1 = http.createServer((req, res) => {
         expect(req.method).toEqual("GET");
-        //expect(req.headers.host?.split(":")[1]).toEqual(`${port(8080)}`);
+        expect(req.headers.host?.split(":")[1]).toEqual(`${port(8080)}`);
         expect(req.url).toEqual("/test1");
         res.end();
       });
@@ -619,7 +638,7 @@ describe("#createProxyServer.web() using own http server", () => {
         source2.close();
         proxyServer.close();
         expect(req.method).toEqual("GET");
-        //expect(req.headers.host?.split(":")[1]).toEqual(`${port(8080)}`);
+        expect(req.headers.host?.split(":")[1]).toEqual(`${port(8080)}`);
         expect(req.url).toEqual("/test2");
         res.end();
         done();

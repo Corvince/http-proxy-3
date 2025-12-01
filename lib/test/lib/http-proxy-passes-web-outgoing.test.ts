@@ -105,6 +105,16 @@ describe.each( ["http://backend.com", url.parse("http://backend.com")])("#setRed
             "http://ext-auto.com/",
           );
         });
+
+        it("on " + code + " (http2)", () => {
+          state.proxyRes.statusCode = code;
+          state.req.headers[":authority"] = state.req.headers.host;
+          delete state.req.headers.host;
+          setRedirectHostRewrite(state.req, {}, state.proxyRes, state.options);
+          expect(state.proxyRes.headers.location).toEqual(
+            "http://ext-auto.com/",
+          );
+        });
       });
 
       it("not on 200", () => {
