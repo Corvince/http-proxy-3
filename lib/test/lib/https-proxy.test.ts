@@ -30,7 +30,7 @@ describe("HTTPS to HTTP", () => {
     const source = http
       .createServer((req, res) => {
         expect(req.method).toEqual("GET");
-        expect(req.headers.host?.split(":")[1]).toEqual(`${ports.proxy}`);
+        expect((req.headers["x-forwarded-host"] as string)?.split(":")[1]).toEqual(`${ports.proxy}`);
         res.writeHead(200, { "Content-Type": "text/plain" });
         res.end("Hello from " + ports.source);
       })
@@ -48,6 +48,7 @@ describe("HTTPS to HTTP", () => {
           ),
           ciphers: "AES128-GCM-SHA256",
         },
+        xfwd: true,
       })
       .listen(ports.proxy);
 

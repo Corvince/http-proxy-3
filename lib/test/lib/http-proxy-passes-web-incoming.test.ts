@@ -602,7 +602,7 @@ describe("#createProxyServer.web() using own http server", () => {
 
   it("should proxy requests to multiple servers with different options", () =>
     new Promise<void>((done) => {
-      const proxy = httpProxy.createProxyServer();
+      const proxy = httpProxy.createProxyServer({xfwd: true});
 
       // proxies to two servers depending on url, rewriting the url as well
       // http://127.0.0.1:8080/s1/ -> http://127.0.0.1:8081/
@@ -628,7 +628,7 @@ describe("#createProxyServer.web() using own http server", () => {
 
       const source1 = http.createServer((req, res) => {
         expect(req.method).toEqual("GET");
-        expect(req.headers.host?.split(":")[1]).toEqual(`${port(8080)}`);
+        expect((req.headers["x-forwarded-host"] as string)?.split(":")[1]).toEqual(`${port(8080)}`);
         expect(req.url).toEqual("/test1");
         res.end();
       });
@@ -638,7 +638,7 @@ describe("#createProxyServer.web() using own http server", () => {
         source2.close();
         proxyServer.close();
         expect(req.method).toEqual("GET");
-        expect(req.headers.host?.split(":")[1]).toEqual(`${port(8080)}`);
+        expect((req.headers["x-forwarded-host"] as string)?.split(":")[1]).toEqual(`${port(8080)}`);
         expect(req.url).toEqual("/test2");
         res.end();
         done();
